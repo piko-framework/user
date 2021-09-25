@@ -5,7 +5,8 @@
     "session",
     "user",
     "login",
-    "logout"
+    "logout",
+    "piko"
   ],
   "authors" : [{
       "name" : "Sylvain Philip",
