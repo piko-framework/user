@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<phpunit
+  bootstrap="tests/bootstrap.php"
+  colors="true"
+  convertErrorsToExceptions="true"
+  convertNoticesToExceptions="true"
+  convertWarningsToExceptions="true">
+  <php>
+    <!-- Remove warnings related to session -->
+    <!-- 
+    <ini name="session.use_cookies" value="0" />
+    <ini name="session.use_only_cookies" value="0" />
+    <ini name="session.use_trans_sid" value="0" />
+    <ini name="session.cache_limiter" value="" />
+    -->
+  </php>
+  <testsuites>
+    <testsuite name="core">
+      <directory>tests</directory>
+    </testsuite>
+  </testsuites>
+  <coverage processUncoveredFiles="true">
+    <include>
+      <directory>src</directory>
+    </include>
+    <report>
+      <html outputDirectory="coverage" />
+    </report>
+  </coverage>
+</phpunit>
