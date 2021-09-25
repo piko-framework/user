@@ -7,7 +7,7 @@ A lightweight user session manager to login/logout, check permissions and retrie
 
 # Installation
 
-It's recommended that you use Composer to install Piko Router.
+It's recommended that you use Composer to install Piko User.
 
 ```bash
 composer require piko/user
