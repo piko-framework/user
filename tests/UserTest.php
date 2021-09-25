@@ -10,13 +10,13 @@ class UserTest extends TestCase
 {
     public static function backupSession($data)
     {
-        file_put_contents(__DIR__ . '/_session_data', serialize($data));
+        file_put_contents('/tmp/_session_data', serialize($data));
     }
 
     public static function restoreSession()
     {
         session_start();
-        $_SESSION = unserialize(file_get_contents(__DIR__ . '/_session_data'));
+        $_SESSION = unserialize(file_get_contents('/tmp/_session_data'));
     }
 
     protected function getUser()
