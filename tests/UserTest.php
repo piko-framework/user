@@ -92,7 +92,7 @@ class UserTest extends TestCase
     public function testEvents()
     {
         $user = new User([
-            'events' => ['init' => [function($u) {
+            'on' => ['init' => [function($u) {
                 $u->identityClass = UserIdentity::class;
                 ini_set('session.name', 'TEST_SESSION');
             }]]
