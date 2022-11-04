@@ -5,7 +5,7 @@ use Piko\User\Event\AfterLoginEvent;
 use Piko\User\Event\AfterLogoutEvent;
 use Piko\User\Event\BeforeLoginEvent;
 use Piko\User\Event\BeforeLogoutEvent;
-use tests\mock\User as UserIdentity;
+use Piko\Tests\mock\User as UserIdentity;
 
 /**
  * @runTestsInSeparateProcesses

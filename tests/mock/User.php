@@ -1,5 +1,5 @@
 <?php
-namespace tests\mock;
+namespace Piko\Tests\mock;
 
 class User implements \Piko\User\IdentityInterface
 {
