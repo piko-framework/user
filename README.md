@@ -18,8 +18,10 @@ composer require piko/user
 Basic exemple:
 
 ```php
-use piko\User;
-use piko\IdentityInterface;
+require 'vendor/autoload.php';
+
+use Piko\User;
+use Piko\User\IdentityInterface;
 
 // Define first your user identity class
 class Identity implements IdentityInterface
@@ -53,9 +55,9 @@ class Identity implements IdentityInterface
 
 $user = new User([
     'identityClass' => Identity::class,
-    'behaviors' => ['checkAccess' => function($id, $permission) {
+    'checkAccess' => function($id, $permission) {
         return $id == 1 && $permission == 'test';
-    }]
+    }
 ]);
 
 // Login
@@ -73,7 +75,7 @@ if ($user->can('test')) {
 $user->logout();
 
 if ($user->isGuest()) {
-    echo $user->getIdentity()->username; // null
+    var_dump($user->getIdentity()); // null
     echo 'Not Authenticated';
 }
 
