@@ -1,6 +1,10 @@
 <?php
 use PHPUnit\Framework\TestCase;
-use piko\User;
+use Piko\User;
+use Piko\User\Event\AfterLoginEvent;
+use Piko\User\Event\AfterLogoutEvent;
+use Piko\User\Event\BeforeLoginEvent;
+use Piko\User\Event\BeforeLogoutEvent;
 use tests\mock\User as UserIdentity;
 
 /**
@@ -24,9 +28,9 @@ class UserTest extends TestCase
         return new User([
             'identityClass' => UserIdentity::class,
             'authTimeout' => 5,
-            'behaviors' => ['checkAccess' => function($id, $permission) {
+            'checkAccess' => function($id, $permission) {
                 return $id == 1 && $permission == 'test';
-            }]
+            }
         ]);
     }
 
@@ -72,7 +76,22 @@ class UserTest extends TestCase
     {
         self::restoreSession();
         $user = $this->getUser();
-        $user->detachBehavior('checkAccess');
+        $user->checkAccess = null;
+        $this->assertFalse($user->can('test'));
+    }
+
+    /**
+     * @depends testLogin
+     */
+    public function testPermissionsWithAccessCheckerReturnsNonBoolean()
+    {
+        self::restoreSession();
+        $user = $this->getUser();
+        $user->checkAccess = function($id, $permission) {
+            if ($id == 1 && $permission == 'test') {
+                return 'OK';
+            }
+        };
         $this->assertFalse($user->can('test'));
     }
 
@@ -88,35 +107,32 @@ class UserTest extends TestCase
         $this->assertTrue($user->isGuest());
     }
 
-
     public function testEvents()
     {
-        $user = new User([
-            'on' => ['init' => [function($u) {
-                $u->identityClass = UserIdentity::class;
-                ini_set('session.name', 'TEST_SESSION');
-            }]]
-        ]);
+        $user = new User();
 
-        $this->assertEquals('TEST_SESSION', ini_get('session.name'));
-        $this->assertEquals(UserIdentity::class, $user->identityClass);
-
-        $user->on('afterLogin', function($identity) {
-            $identity->username = 'pascal';
+        $user->on(BeforeLoginEvent::class, function(BeforeLoginEvent $event) {
+            $event->identity->id = 2;
         });
 
-        $user->on('afterLogout', function($identity) {
-            $identity->username = 'sylvain';
+        $user->on(AfterLoginEvent::class, function(AfterLoginEvent $event) {
+            $event->identity->username = 'pierre';
+        });
+
+        $user->on(BeforeLogoutEvent::class, function(BeforeLogoutEvent $event) {
+            $event->identity->id = 1;
+        });
+
+        $user->on(AfterLogoutEvent::class, function(AfterLogoutEvent $event) {
+            $event->identity->username = 'sylvain';
         });
 
         $identity = UserIdentity::findIdentity(1);
-
         $user->login($identity);
-
-        $this->assertEquals('pascal', $identity->username);
-
+        $this->assertEquals(2, $identity->id);
+        $this->assertEquals('pierre', $identity->username);
         $user->logout();
-
+        $this->assertEquals(1, $identity->id);
         $this->assertEquals('sylvain', $identity->username);
     }
 }

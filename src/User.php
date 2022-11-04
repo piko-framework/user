@@ -1,7 +1,7 @@
 <?php
 
 /**
- * This file is part of Piko - Web micro framework
+ * This file is part of Piko Framework
  *
  * @copyright 2019-2022 Sylvain PHILIP
  * @license LGPL-3.0; see LICENSE.txt
@@ -10,8 +10,13 @@
 
 declare(strict_types=1);
 
-namespace piko;
+namespace Piko;
 
+use Piko\User\IdentityInterface;
+use Piko\User\Event\AfterLoginEvent;
+use Piko\User\Event\AfterLogoutEvent;
+use Piko\User\Event\BeforeLoginEvent;
+use Piko\User\Event\BeforeLogoutEvent;
 use RuntimeException;
 
 /**
@@ -22,8 +27,10 @@ use RuntimeException;
  *
  * @author Sylvain PHILIP <contact@sphilip.com>
  */
-class User extends Component
+class User
 {
+    use EventHandlerTrait;
+
     /**
      * The class name of the identity object.
      *
@@ -37,6 +44,15 @@ class User extends Component
      * @var integer
      */
     public $authTimeout;
+
+    /**
+     * Callback to check user permission
+     *
+     * The callback signature must be : function(int $userId, string $permission): bool
+     *
+     * @var callable
+     */
+    public $checkAccess;
 
     /**
      * The identity instance.
@@ -53,12 +69,11 @@ class User extends Component
     protected $access = [];
 
     /**
-     * {@inheritDoc}
-     * @see \piko\Component::init()
+     * @param array<string, mixed> $config
      */
-    protected function init(): void
+    public function __construct(array $config = [])
     {
-        $this->trigger('init', [$this]);
+        \Piko::configureObject($this, $config);
 
         if (!empty($this->authTimeout && session_status() !== PHP_SESSION_ACTIVE)) {
             ini_set('session.gc_maxlifetime', (string) $this->authTimeout);
@@ -123,9 +138,9 @@ class User extends Component
     public function login(IdentityInterface $identity): void
     {
         $this->startSession();
-        $this->trigger('beforeLogin', [$identity]);
+        $this->trigger(new BeforeLoginEvent($identity));
         $this->setIdentity($identity);
-        $this->trigger('afterLogin', [$identity]);
+        $this->trigger(new AfterLoginEvent($identity));
         $_SESSION['_id'] = $identity->getId();
     }
 
@@ -137,9 +152,17 @@ class User extends Component
     public function logout(): void
     {
         $this->startSession();
-        $this->trigger('beforeLogout', [$this->identity]);
+
+        if ($this->identity instanceof IdentityInterface) {
+            $this->trigger(new BeforeLogoutEvent($this->identity));
+        }
+
         session_destroy();
-        $this->trigger('afterLogout', [$this->identity]);
+
+        if ($this->identity instanceof IdentityInterface) {
+            $this->trigger(new AfterLogoutEvent($this->identity));
+        }
+
         $this->identity = null;
         $this->access = [];
     }
@@ -166,13 +189,18 @@ class User extends Component
             return $this->access[$permission];
         }
 
-        if (!isset($this->behaviors['checkAccess'])) {
+        if (!is_callable($this->checkAccess)) {
             return false;
         }
 
-        $access = $this->checkAccess($this->getId(), $permission);
-        $this->access[$permission] = $access;
+        $access = call_user_func_array($this->checkAccess, [$this->getId(), $permission]);
 
-        return $access;
+        if (is_bool($access)) {
+            $this->access[$permission] = $access;
+
+            return $access;
+        }
+
+        return false;
     }
 }

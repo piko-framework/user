@@ -1,7 +1,7 @@
 <?php
 namespace tests\mock;
 
-class User implements \piko\IdentityInterface
+class User implements \Piko\User\IdentityInterface
 {
     private static $users = [
         1 => 'sylvain',

@@ -1,14 +1,14 @@
 <?php
 
 /**
- * This file is part of Piko - Web micro framework
+ * This file is part of Piko Framework
  *
- * @copyright 2019-2022 Sylvain PHILIP
- * @license LGPL-3.0; see LICENSE.txt
+ * @copyright 2019-2022 Sylvain Philip
+ * @license LGPL-3.0-or-later; see LICENSE.txt
  * @link https://github.com/piko-framework/user
  */
 
-namespace piko;
+namespace Piko\User;
 
 /**
  * User identity interface.
